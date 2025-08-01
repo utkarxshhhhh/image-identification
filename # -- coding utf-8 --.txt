@@ -1,0 +1,103 @@
+# -*- coding: utf-8 -*-
+"""
+Image Classification with TensorFlow and MobileNetV2.
+
+This script demonstrates how to use a pre-trained deep learning model
+to classify the content of an image. It is designed to be run in a
+Google Colab environment.
+
+Steps:
+1. Import necessary libraries (TensorFlow, NumPy).
+2. Load the pre-trained MobileNetV2 model.
+3. Provide a widget to upload an image file.
+4. Preprocess the uploaded image to match the model's input requirements.
+5. Make a prediction using the model.
+6. Decode and display the top 3 most likely classifications.
+"""
+
+# 1. Import necessary libraries
+import tensorflow as tf
+import numpy as np
+from google.colab import files
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2, preprocess_input, decode_predictions
+
+print("TensorFlow Version:", tf.__version__)
+
+# 2. Load the pre-trained MobileNetV2 model
+# MobileNetV2 is a lightweight model, great for quick inference and mobile applications.
+# We load it with weights pre-trained on the ImageNet dataset, which contains 1000 object categories.
+try:
+    model = MobileNetV2(weights='imagenet')
+    print("MobileNetV2 model loaded successfully.")
+    # Optional: Display model summary to see its architecture
+    # model.summary()
+except Exception as e:
+    print(f"Error loading model: {e}")
+    # Exit if model fails to load
+    exit()
+
+# 3. Function to upload and preprocess the image
+def upload_and_process_image():
+    """
+    Handles file upload using Colab's widget and preprocesses the image
+    for the MobileNetV2 model.
+
+    Returns:
+        A preprocessed image as a NumPy array if successful, otherwise None.
+        The path to the uploaded file.
+    """
+    try:
+        # Use Google Colab's file uploader
+        uploaded = files.upload()
+
+        # Get the filename of the uploaded file
+        # We assume the user uploads only one file
+        for fn in uploaded.keys():
+            print(f'User uploaded file "{fn}" with length {len(uploaded[fn])} bytes')
+            path = fn
+
+            # Load the image file, resizing it to 224x224 pixels (the input size for MobileNetV2)
+            img = image.load_img(path, target_size=(224, 224))
+
+            # Convert the image to a NumPy array
+            img_array = image.img_to_array(img)
+
+            # Expand the dimensions of the image to match the model's expected input shape (1, 224, 224, 3)
+            # The '1' represents a batch size of one.
+            img_array_expanded = np.expand_dims(img_array, axis=0)
+
+            # Preprocess the image (normalize pixel values) for the MobileNetV2 model
+            # This function handles the specific normalization required by this model.
+            return preprocess_input(img_array_expanded), path
+
+    except Exception as e:
+        print(f"An error occurred during file upload or processing: {e}")
+        return None, None
+
+# 4. Perform prediction and display results
+preprocessed_image, file_path = upload_and_process_image()
+
+if preprocessed_image is not None:
+    # 5. Make a prediction
+    # The model.predict() function returns a probability distribution over the 1000 ImageNet classes.
+    predictions = model.predict(preprocessed_image)
+
+    # 6. Decode the predictions
+    # This function converts the raw probabilities into a list of (class_id, class_name, probability) tuples.
+    # We ask for the top 3 predictions.
+    decoded_predictions = decode_predictions(predictions, top=3)[0]
+
+    # Display the results in a user-friendly format
+    print("\n========================================")
+    print(f"Top 3 Predictions for '{file_path}':")
+    print("========================================")
+
+    for i, (imagenet_id, label, score) in enumerate(decoded_predictions):
+        # Format the label to be more readable (e.g., 'golden_retriever' -> 'Golden Retriever')
+        formatted_label = label.replace('_', ' ').title()
+        print(f"{i+1}: {formatted_label} ({score:.2%})")
+
+    print("========================================")
+else:
+    print("\nCould not perform prediction due to an error.")
