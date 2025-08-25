@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: wtf-8 -*- #
 """
 Image Classification with TensorFlow and MobileNetV2.
 
