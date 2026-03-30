@@ -1,5 +1,4 @@
-const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const { v2: cloudinary } = require("cloudinary");
 const multer = require("multer");
 
 // Configure Cloudinary credentials from environment variables
@@ -10,33 +9,32 @@ cloudinary.config({
 });
 
 /**
- * Multer-Cloudinary storage for 3D model files (.glb).
- * Files are stored under the "ar-food-menu/models" folder in Cloudinary.
- * raw resource_type is required for non-image binary files.
+ * Wrap cloudinary's upload_stream in a Promise so it can be awaited.
+ * @param {Buffer} buffer  - File data from multer memoryStorage
+ * @param {object} options - Cloudinary upload options (folder, resource_type, …)
+ * @returns {Promise<object>} Cloudinary upload result (contains secure_url, etc.)
  */
-const modelStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "ar-food-menu/models",
-    resource_type: "raw",
-    allowed_formats: ["glb"],
-  },
-});
+const uploadBuffer = (buffer, options) =>
+  new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(options, (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      })
+      .end(buffer);
+  });
 
 /**
- * Multer-Cloudinary storage for food item images.
- * Files are stored under the "ar-food-menu/images" folder in Cloudinary.
+ * Single multer instance using in-memory storage.
+ * Files are held as Buffers in req.files, then manually streamed to Cloudinary.
+ * Accepts both "model" (.glb) and "image" (jpg/png/webp) fields.
  */
-const imageStorage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "ar-food-menu/images",
-    resource_type: "image",
-    allowed_formats: ["jpg", "jpeg", "png", "webp"],
-  },
-});
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB cap
+}).fields([
+  { name: "model", maxCount: 1 },
+  { name: "image", maxCount: 1 },
+]);
 
-const uploadModel = multer({ storage: modelStorage });
-const uploadImage = multer({ storage: imageStorage });
-
-module.exports = { cloudinary, uploadModel, uploadImage };
+module.exports = { cloudinary, uploadBuffer, upload };
