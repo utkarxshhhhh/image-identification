@@ -1,31 +1,48 @@
-# image-identification
-image identification project using computer vision techniques.
-# 🧠 Image Identification using Computer Vision
+# Image Identification (MobileNetV2)
 
-This project uses computer vision techniques to identify images and categorize them based on trained models. It's designed to demonstrate the power of deep learning for image recognition.
+A simple command-line image classifier using a pre-trained **MobileNetV2** model from TensorFlow/Keras.
 
-## 📦 Features
-- Image upload and prediction
-- Model training with custom dataset
-- Real-time image classification
-- Basic UI with results display
+## What improved
+- Removed Colab-only upload flow and replaced it with a local CLI (`--image`).
+- Added input validation and clearer runtime error messages.
+- Added lightweight unit tests for core helper logic.
+- Added explicit dependencies and a `.gitignore`.
 
-## 🔧 Tech Stack
-- Python
-- OpenCV
-- TensorFlow / Keras
-- NumPy / Pandas
-- Matplotlib
+## Requirements
+- Python 3.10+
+- pip
 
-## 🚀 How to Run
+Install dependencies:
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/utkarxshhhhh/image-identification.git
-cd image-identification
-
-# 2. Install dependencies
 pip install -r requirements.txt
+```
 
-# 3. Run the app
-python main.py
+## Usage
+
+```bash
+python main.py --image /path/to/photo.jpg --top-k 3
+```
+
+### Options
+- `--image` (required): path to an image file (`.jpg`, `.jpeg`, `.png`, `.bmp`, `.gif`, `.webp`)
+- `--top-k` (optional): number of top predictions to display (1-10, default: 3)
+
+## Run tests
+
+```bash
+pip install pytest
+pytest -q
+```
+
+## Example output
+
+```text
+TensorFlow Version: 2.x.x
+Classifying: /absolute/path/cat.jpg
+==========================================
+1. Tabby Cat: 82.13%
+2. Tiger Cat: 10.28%
+3. Egyptian Cat: 3.56%
+==========================================
+```
