@@ -5,3 +5,15 @@ venv/
 .env
 .pytest_cache/
 *.log
+
+# Node / npm
+node_modules/
+npm-debug.log*
+
+# Next.js
+frontend/.next/
+frontend/out/
+
+# Build artefacts
+dist/
+build/
